@@ -1,0 +1,89 @@
+package com.example.opencv_frist;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.SurfaceView;
+import android.widget.TextView;
+import android.widget.Toast;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
+public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
+    TextView tv;
+    CameraBridgeViewBase camview_c,camview_l,camview_r;
+    Mat mat1;
+    BaseLoaderCallback baseLoaderCallback;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        camview_l = (CameraBridgeViewBase)findViewById(R.id.jcv_l);  // left side
+        camview_l.setVisibility(SurfaceView.VISIBLE);
+        camview_l.setCvCameraViewListener(this);
+        camview_r = (CameraBridgeViewBase)findViewById(R.id.jcv_r);  // r side
+        camview_r.setVisibility(SurfaceView.VISIBLE);
+        camview_r.setCvCameraViewListener(this);
+
+        camview_c = (CameraBridgeViewBase)findViewById(R.id.jcv_c);  // mid
+        camview_c.setVisibility(SurfaceView.VISIBLE);
+        camview_c.setCvCameraViewListener(this);
+
+        baseLoaderCallback = new BaseLoaderCallback(this) {
+            @Override
+            public void onManagerConnected(int status) {
+
+                switch (status)
+                {
+                    case BaseLoaderCallback.SUCCESS:
+                        camview_c.enableView();
+                        camview_r.enableView();
+                        camview_l.enableView();
+                        break;
+                    default:
+                        super.onManagerConnected(status);
+                        break;
+                }
+            }
+        };
+
+
+    }
+
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+        mat1 = new Mat(width,height, CvType.CV_8UC4);
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+        mat1.release();
+    }
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        mat1 = inputFrame.rgba();
+        return mat1;
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if(OpenCVLoader.initDebug())
+        {
+            baseLoaderCallback.onManagerConnected(baseLoaderCallback.SUCCESS);
+        }
+        else
+        {
+            Toast.makeText(this, "Somthing not ok...", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+}
